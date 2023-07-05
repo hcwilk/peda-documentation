@@ -18,8 +18,6 @@ import time
 import signal
 import traceback
 import codecs
-
-# point to absolute path of peda.py
 PEDAFILE = os.path.abspath(os.path.expanduser(__file__))
 if os.path.islink(PEDAFILE):
     PEDAFILE = os.readlink(PEDAFILE)
@@ -41,7 +39,10 @@ from shellcode import *
 from utils import *
 import config
 from nasm import *
+from explains import explanations
 
+
+# point to absolute path of peda.py
 if sys.version_info.major == 3:
     from urllib.request import urlopen
     from urllib.parse import urlencode
@@ -5017,15 +5018,27 @@ class PEDACmd(object):
         return
 
     def explain(self, *arg):
-        
         """
         Explains various concepts & topics related to binary exploitation investigations
         Usage:
             MYNAME topic
         """
-
+    
         (topic,) = normalize_argv(arg, 1)
-        msg("You're looking to learn more about %s, right?"%topic)
+    
+    
+        explanation = explanations.get(topic.lower())
+        if explanation:
+            msg("You're looking to learn more about %s, right?"%topic)
+            msg(explanation)
+
+        else:
+            msg("The topic %s is not recognized. Please enter one of the following topics: relro, canary, nx, pie, fortify."%topic)
+    
+        return
+ 
+
+
     # checksec()
     def checksec(self, *arg):
         """
