@@ -108,22 +108,22 @@ class PEDA(object):
         else:
             logfd = tmpfile()
         logname = logfd.name
-        gdb.execute('set logging off') # prevent nested call
+        gdb.execute('set logging enabled off') # prevent nested call
         gdb.execute('set height 0') # disable paging
         gdb.execute('set logging file %s' % logname)
         gdb.execute('set logging overwrite on')
         gdb.execute('set logging redirect on')
-        gdb.execute('set logging on')
+        gdb.execute('set logging enabled on')
         try:
             gdb.execute(gdb_command)
             gdb.flush()
-            gdb.execute('set logging off')
+            gdb.execute('set logging enabled off')
             if not silent:
                 logfd.flush()
                 result = logfd.read()
             logfd.close()
         except Exception as e:
-            gdb.execute('set logging off') #to be sure
+            gdb.execute('set logging enabled off') #to be sure
             if config.Option.get("debug") == "on":
                 msg('Exception (%s): %s' % (gdb_command, e), "red")
                 traceback.print_exc()
@@ -2518,6 +2518,8 @@ class PEDA(object):
                     if name in k:
                         result[k] = v
         return result
+
+    
 
     def checksec(self, filename=None):
         """
@@ -5014,6 +5016,14 @@ class PEDACmd(object):
                 msg("%s = %s" % (k, "0x%x" % v if v else repr(v)))
         return
 
+    def test(self, *arg):
+        """
+        Check for various security options of binary
+        For full features, use http://www.trapkit.de/tools/checksec.sh
+        Usage:
+            MYNAME [file]
+        """
+        msg("Here we are again")
     # checksec()
     def checksec(self, *arg):
         """
@@ -6112,7 +6122,7 @@ for cmd in pedacmd.commands:
 # handle SIGINT / Ctrl-C
 def sigint_handler(signal, frame):
     warning_msg("Got Ctrl+C / SIGINT!")
-    gdb.execute("set logging off")
+    gdb.execute("set logging enabled off")
     peda.restore_user_command("all")
     raise KeyboardInterrupt
 signal.signal(signal.SIGINT, sigint_handler)
