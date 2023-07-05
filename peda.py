@@ -5016,14 +5016,16 @@ class PEDACmd(object):
                 msg("%s = %s" % (k, "0x%x" % v if v else repr(v)))
         return
 
-    def test(self, *arg):
+    def explain(self, *arg):
+        
         """
-        Check for various security options of binary
-        For full features, use http://www.trapkit.de/tools/checksec.sh
+        Explains various concepts & topics related to binary exploitation investigations
         Usage:
-            MYNAME [file]
+            MYNAME topic
         """
-        msg("Here we are again")
+
+        (topic,) = normalize_argv(arg, 1)
+        msg("You're looking to learn more about %s, right?"%topic)
     # checksec()
     def checksec(self, *arg):
         """
@@ -5034,19 +5036,28 @@ class PEDACmd(object):
         """
         (filename,) = normalize_argv(arg, 1)
         colorcodes = {
-            0: red("disabled"),
-            1: green("ENABLED"),
-            2: yellow("Partial"),
-            3: green("FULL"),
-            4: yellow("Dynamic Shared Object"),
+            0: (red("disabled"), "No protections"),
+            1: (green("ENABLED"), "Protection enabled"),
+            2: (yellow("Partial"), "Partial protection"),
+            3: (green("FULL"), "Full protection"),
+            4: (yellow("Dynamic Shared Object"), "Dynamic shared object")
         }
-
+    
+        descriptions = {
+            "RELRO": "Read-only relocations (RELRO) is a security feature that mitigates exploitation techniques",
+            "CANARY": "Canaries are used to detect a stack overflow before execution of malicious code can occur.",
+            "NX": "The NX (No-eXecute) bit can prevent certain areas of memory from being used to execute code.",
+            "PIE": "Position-independent executables (PIE) are intended to take advantage of address space layout randomization (ASLR).",
+            "FORTIFY": "FORTIFY_SOURCE is a macro in GNU C Library that aims to detect buffer overflows."
+        }
+    
         result = peda.checksec(filename)
         if result:
             for (k, v) in sorted(result.items()):
-                msg("%s: %s" % (k.ljust(10), colorcodes[v]))
+                color, status = colorcodes[v]
+                description = descriptions.get(k, "")
+                msg("%s: %s (%s) - %s" % (k.ljust(10), color, status, description))
         return
-
     def nxtest(self, *arg):
         """
         Perform real NX test to see if it is enabled/supported by OS
